@@ -9,7 +9,7 @@ on:
 
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
-  DOTNET_VERSION: '8.0.x'
+  DOTNET_VERSION: '8.x'
 
 jobs:
   build-and-deploy:
@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -41,8 +41,8 @@ jobs:
           subscription-id: ${{ secrets.__subscriptionidsecretname__ }}
 
       - name: 'Run Azure Functions Action'
-        uses: Azure/functions-action@v1
-        id: fa
+        uses: azure/functions-action@v1
+        id: deploy-function-app
         with:
           app-name: 'shiftkey-growing-sync-images'
           slot-name: 'production'
