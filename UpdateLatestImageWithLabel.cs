@@ -21,7 +21,7 @@ namespace Grow.Update
         }
 
         [Function("UpdateLatestImageWithLabel")]
-        public void Run([TimerTrigger("*/5 7-20 * * *")] TimerInfo myTimer)
+        public void Run([TimerTrigger("0 */15 7-20 * * *")] TimerInfo myTimer)
         {
             _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
