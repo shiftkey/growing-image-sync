@@ -29,10 +29,18 @@ namespace Grow.Update
             var containerName = "images";
             var latestFileName = "latest.jpg";
 
-            FontCollection collection = new();
-            var family = collection.Add("assets/NotoSansMono-Regular.ttf");
-            var font = family.CreateFont(12, FontStyle.Regular);
+            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            var resource = assembly.GetManifestResourceStream("growing_image_sync.assets.NotoSansMono-Regular.ttf");
 
+            if (resource == null)
+            {
+                Console.WriteLine($"Unable to find font for rendering, exiting...");
+                Environment.Exit(0);
+            }
+
+            FontCollection collection = new();
+            var family = collection.Add(resource);
+            var font = family.CreateFont(12, FontStyle.Regular);
 
             var connectionString = Environment.GetEnvironmentVariable("BLOB_STORAGE_CONNECTION_STRING");
             if (string.IsNullOrWhiteSpace(connectionString))
