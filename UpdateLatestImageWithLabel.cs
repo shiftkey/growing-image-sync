@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker;
@@ -21,7 +23,7 @@ namespace Grow.Update
         }
 
         [Function("UpdateLatestImageWithLabel")]
-        public void Run([TimerTrigger("0 3,18,32,48 0,11-23 * * *")] TimerInfo myTimer)
+        public async Task Run([TimerTrigger("0 3,18,32,48 0,11-23 * * *")] TimerInfo myTimer)
         {
             _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
@@ -87,6 +89,27 @@ namespace Grow.Update
 
                 var latestBlobClient = new BlobClient(connectionString, containerName, latestFileName);
                 latestBlobClient.Upload(streamForUploading, true);
+            }
+
+            try
+            {
+                var endpoint = Environment.GetEnvironmentVariable("CALLBACK_URL");
+                var bearerToken = Environment.GetEnvironmentVariable("CALLBACK_BEARER_TOKEN");
+                if (string.IsNullOrWhiteSpace(bearerToken) || string.IsNullOrWhiteSpace(endpoint))
+                {
+                    _logger.LogInformation($"Check CALLBACK_URL and CALLBACK_BEARER_TOKEN are set, not making callback to signal new image available...");
+                }
+                else
+                {
+                    var client = new HttpClient();
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+                    var response = await client.PostAsync(endpoint, null);
+                    _logger.LogInformation($"Callback response found with status: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Unable to make callback request: {ex}");
             }
 
             if (myTimer.ScheduleStatus is not null)
