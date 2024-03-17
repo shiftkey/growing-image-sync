@@ -91,26 +91,7 @@ namespace Grow.Update
                 latestBlobClient.Upload(streamForUploading, true);
             }
 
-            try
-            {
-                var endpoint = Environment.GetEnvironmentVariable("CALLBACK_URL");
-                var bearerToken = Environment.GetEnvironmentVariable("CALLBACK_BEARER_TOKEN");
-                if (string.IsNullOrWhiteSpace(bearerToken) || string.IsNullOrWhiteSpace(endpoint))
-                {
-                    _logger.LogInformation($"Check CALLBACK_URL and CALLBACK_BEARER_TOKEN are set, not making callback to signal new image available...");
-                }
-                else
-                {
-                    var client = new HttpClient();
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-                    var response = await client.PostAsync(endpoint, null);
-                    _logger.LogInformation($"Callback response found with status: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Unable to make callback request: {ex}");
-            }
+            await PostToFrontend();
 
             if (myTimer.ScheduleStatus is not null)
             {
@@ -185,6 +166,31 @@ namespace Grow.Update
                 WrappingLength = targetWidth
             };
             return processingContext.DrawText(textOptions, text, color);
+        }
+
+
+        async Task PostToFrontend()
+        {
+            try
+            {
+                var endpoint = Environment.GetEnvironmentVariable("CALLBACK_URL");
+                var bearerToken = Environment.GetEnvironmentVariable("CALLBACK_BEARER_TOKEN");
+                if (string.IsNullOrWhiteSpace(bearerToken) || string.IsNullOrWhiteSpace(endpoint))
+                {
+                    _logger.LogInformation($"Check CALLBACK_URL and CALLBACK_BEARER_TOKEN are set, not making callback to signal new image available...");
+                }
+                else
+                {
+                    var client = new HttpClient();
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+                    var response = await client.PostAsync(endpoint, null);
+                    _logger.LogInformation($"Callback response found with status: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Unable to make callback request: {ex}");
+            }
         }
     }
 }
