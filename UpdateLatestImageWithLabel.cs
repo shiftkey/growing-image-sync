@@ -23,7 +23,7 @@ namespace Grow.Update
         }
 
         [Function("UpdateLatestImageWithLabel")]
-        public async Task Run([TimerTrigger("0 3,18,32,48 0,11-23 * * *")] TimerInfo myTimer)
+        public async Task Run([TimerTrigger("0 3,18,32,48 10-23 * * *")] TimerInfo myTimer)
         {
             _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
