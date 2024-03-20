@@ -1,7 +1,7 @@
 using System.Globalization;
-using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
+using static Grow.Watermark;
 using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -42,7 +42,7 @@ namespace Grow.Update
 
             FontCollection collection = new();
             var family = collection.Add(resource);
-            var font = family.CreateFont(12, FontStyle.Regular);
+            var font = family.CreateFont(14, FontStyle.Regular);
 
             var connectionString = Environment.GetEnvironmentVariable("BLOB_STORAGE_CONNECTION_STRING");
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -68,8 +68,9 @@ namespace Grow.Update
                 var dt = DateTime.ParseExact(m.Value, "yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
                 Console.WriteLine("Latest timestamp: " + dt);
 
-                var humanFriendlyDateTime = dt.ToString("h:mm tt - d MMMM", CultureInfo.InvariantCulture);
-                Console.WriteLine("Latest timestamp (friendly): " + humanFriendlyDateTime);
+                var humanFriendlyTime = dt.ToString("h:mm tt", CultureInfo.InvariantCulture);
+                var humanFriendlyDate = dt.ToString("d MMMM", CultureInfo.InvariantCulture);
+                Console.WriteLine("Latest timestamp (friendly): {0} - {1}", humanFriendlyTime, humanFriendlyDate);
 
                 var lastBlobClient = new BlobClient(connectionString, containerName, last.Name);
 
@@ -81,7 +82,8 @@ namespace Grow.Update
 
                 using (Image img = Image.Load(initialStream))
                 {
-                    img.Mutate(ctx => ApplyTimeWatermark(ctx, font, humanFriendlyDateTime, Color.White, 5));
+                    img.Mutate(ctx => ApplyToImage(ctx, font, humanFriendlyTime, Color.White, 10, firstRow: true));
+                    img.Mutate(ctx => ApplyToImage(ctx, font, humanFriendlyDate, Color.White, 10));
                     img.Save(streamForUploading, new JpegEncoder());
                 }
 
