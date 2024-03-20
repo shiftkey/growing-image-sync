@@ -7,88 +7,52 @@ namespace Grow
 {
     public static class Watermark
     {
-        //
-        // Apply some text to the bottom-right of the image
-        // 
-        // The firstRow parameter is there to shift the text up (so it will render above the second row)
-        //
-        // Based upon https://github.com/SixLabors/Samples/blob/main/ImageSharp/DrawWaterMarkOnImage/Program.cs#L28
-        public static IImageProcessingContext ApplyToImage(IImageProcessingContext processingContext,
+        static readonly float KnownGoodFontSize = 101.5f;
+
+        public static IImageProcessingContext ApplyTimestamp(IImageProcessingContext processingContext,
             Font font,
-            string text,
+            string firstRow,
+            string secondRow,
             Color color,
-            float padding,
-            bool firstRow = false)
+            float padding)
         {
             Size imgSize = processingContext.GetCurrentSize();
             float targetWidth = imgSize.Width - (padding * 2);
-            float targetHeight = imgSize.Height - (padding * 2);
 
-            float targetMinHeight = imgSize.Height - (padding * 3); // Must be with in a margin width of the target height
+            // hard-coded for now to avoid re-computing each time when we have a known range
+            // of characters in use (and plenty of space to draw into the image)
+            var scaledFont = new Font(font, KnownGoodFontSize);
 
-            // Now we are working in 2 dimensions at once and can't just scale because it will cause the text to
-            // reflow we need to just try multiple times
-            var scaledFont = font;
-            FontRectangle s = new(0, 0, float.MaxValue, float.MaxValue);
+            var firstRowCenter = new PointF(imgSize.Width, imgSize.Height);
+            firstRowCenter.X -= padding;
 
-            float scaleFactor = (scaledFont.Size / 2); // Every time we change direction we half this size
-            int trapCount = (int)scaledFont.Size * 2;
-            if (trapCount < 10)
+            // offset the center by the height of the font, with some padding
+            // so we can draw this line "above" the bottom-right corner
+            firstRowCenter.Y -= padding + KnownGoodFontSize;
+
+            var firstRowTextOptions = new RichTextOptions(scaledFont)
             {
-                trapCount = 10;
-            }
-
-            bool isTooSmall = false;
-
-            while ((s.Height > targetHeight || s.Height < targetMinHeight) && trapCount > 0)
-            {
-                if (s.Height > targetHeight)
-                {
-                    if (isTooSmall)
-                    {
-                        scaleFactor /= 2;
-                    }
-
-                    scaledFont = new Font(scaledFont, scaledFont.Size - scaleFactor);
-                    isTooSmall = false;
-                }
-
-                if (s.Height < targetMinHeight)
-                {
-                    if (!isTooSmall)
-                    {
-                        scaleFactor /= 2;
-                    }
-                    scaledFont = new Font(scaledFont, scaledFont.Size + scaleFactor);
-                    isTooSmall = true;
-                }
-                trapCount--;
-
-                s = TextMeasurer.MeasureSize(text, new TextOptions(scaledFont)
-                {
-                    WrappingLength = targetWidth
-                });
-
-            }
-
-            var center = new PointF(imgSize.Width, imgSize.Height);
-
-            center.X -= padding;
-            center.Y -= padding;
-
-            if (firstRow)
-            {
-                center.Y -= 100;
-            }
-
-            var textOptions = new RichTextOptions(scaledFont)
-            {
-                Origin = center,
+                Origin = firstRowCenter,
                 HorizontalAlignment = HorizontalAlignment.Right,
                 VerticalAlignment = VerticalAlignment.Bottom,
                 WrappingLength = targetWidth
             };
-            return processingContext.DrawText(textOptions, text, color);
+
+            var secondRowCenter = firstRowCenter;
+            // reset this number for the second row so it's back in the
+            // expected bottom-right corner
+            secondRowCenter.Y += KnownGoodFontSize;
+
+            var secondRowTextOptions = new RichTextOptions(scaledFont)
+            {
+                Origin = secondRowCenter,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Bottom,
+                WrappingLength = targetWidth
+            };
+            return processingContext
+                .DrawText(firstRowTextOptions, firstRow, color)
+                .DrawText(secondRowTextOptions, secondRow, color);
         }
     }
 }
