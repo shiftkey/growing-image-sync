@@ -36,7 +36,7 @@ namespace Grow.Update
 
             if (resource == null)
             {
-                Console.WriteLine($"Unable to find font for rendering, exiting...");
+                _logger.LogError("Unable to find font for rendering, exiting...");
                 Environment.Exit(0);
             }
 
@@ -47,7 +47,7 @@ namespace Grow.Update
             var connectionString = Environment.GetEnvironmentVariable("BLOB_STORAGE_CONNECTION_STRING");
             if (string.IsNullOrWhiteSpace(connectionString))
             {
-                Console.WriteLine($"No BLOB_STORAGE_CONNECTION_STRING environment variable set, ignoring...");
+                _logger.LogError("No BLOB_STORAGE_CONNECTION_STRING environment variable set, ignoring...");
                 Environment.Exit(0);
             }
             else
@@ -56,21 +56,20 @@ namespace Grow.Update
 
                 var blobs = containerClient.GetBlobs(Azure.Storage.Blobs.Models.BlobTraits.None, Azure.Storage.Blobs.Models.BlobStates.None, "image-");
                 var last = blobs.Last();
-                Console.WriteLine("Latest blob:" + last.Name);
+                _logger.LogInformation("Latest blob: {0}", last.Name);
 
                 Match m = dateFileFormatRegex.Match(last.Name);
                 if (!m.Success)
                 {
-                    Console.WriteLine($"Unable to extract date time value from file name: " + last.Name);
+                    _logger.LogError(message: "Unable to extract date time value from file name: {0}", last.Name);
                     Environment.Exit(0);
                 }
 
                 var dt = DateTime.ParseExact(m.Value, "yyyyMMdd-HHmmss", CultureInfo.InvariantCulture);
-                Console.WriteLine("Latest timestamp: " + dt);
 
                 var humanFriendlyTime = dt.ToString("h:mm tt", CultureInfo.InvariantCulture);
                 var humanFriendlyDate = dt.ToString("d MMMM", CultureInfo.InvariantCulture);
-                Console.WriteLine("Latest timestamp (friendly): {0} - {1}", humanFriendlyTime, humanFriendlyDate);
+                _logger.LogInformation("Latest timestamp (friendly): {0} - {1}", humanFriendlyTime, humanFriendlyDate);
 
                 var lastBlobClient = new BlobClient(connectionString, containerName, last.Name);
 
@@ -120,7 +119,7 @@ namespace Grow.Update
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Unable to make callback request: {ex}");
+                _logger.LogError(message: "Unable to make callback request: {0}", ex);
             }
         }
     }
