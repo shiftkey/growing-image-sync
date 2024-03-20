@@ -72,11 +72,12 @@ namespace Grow
             }
 
             var center = new PointF(imgSize.Width, imgSize.Height);
-            
+
             center.X -= padding;
             center.Y -= padding;
 
-            if (firstRow) {
+            if (firstRow)
+            {
                 center.Y -= 100;
             }
 
