@@ -32,7 +32,7 @@ namespace Grow.Update
             var latestFileName = "latest.jpg";
 
             var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            var resource = assembly.GetManifestResourceStream("growing_image_sync.assets.NotoSansMono-Regular.ttf");
+            var resource = assembly.GetManifestResourceStream("Grow.assets.NotoSansMono-Regular.ttf");
 
             if (resource == null)
             {
