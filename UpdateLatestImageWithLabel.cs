@@ -31,18 +31,18 @@ namespace Grow.Update
             var containerName = "images";
             var latestFileName = "latest.jpg";
 
-            var assembly = System.Reflection.Assembly.GetExecutingAssembly();
-            var resource = assembly.GetManifestResourceStream("Grow.assets.NotoSansMono-Regular.ttf");
+            Font? font = null;
 
-            if (resource == null)
+            using (new AutoStopwatch(_logger, "loading font"))
+            {
+                font = FontLoader.Setup();
+            }
+
+            if (font == null)
             {
                 _logger.LogError("Unable to find font for rendering, exiting...");
                 Environment.Exit(0);
             }
-
-            FontCollection collection = new();
-            var family = collection.Add(resource);
-            var font = family.CreateFont(14, FontStyle.Regular);
 
             var connectionString = Environment.GetEnvironmentVariable("BLOB_STORAGE_CONNECTION_STRING");
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -71,27 +71,38 @@ namespace Grow.Update
                 var humanFriendlyDate = dt.ToString("d MMMM", CultureInfo.InvariantCulture);
                 _logger.LogInformation("Latest timestamp (friendly): {0} - {1}", humanFriendlyTime, humanFriendlyDate);
 
-                var lastBlobClient = new BlobClient(connectionString, containerName, last.Name);
 
                 var initialStream = new MemoryStream();
-                lastBlobClient.DownloadTo(initialStream);
-                initialStream.Seek(0, SeekOrigin.Begin);
+
+                using (new AutoStopwatch(_logger, "downloading blob"))
+                {
+                    var lastBlobClient = new BlobClient(connectionString, containerName, last.Name);
+                    lastBlobClient.DownloadTo(initialStream);
+                    initialStream.Seek(0, SeekOrigin.Begin);
+                }
 
                 var streamForUploading = new MemoryStream();
 
-                using (Image img = Image.Load(initialStream))
+                using (new AutoStopwatch(_logger, "mutating image"))
                 {
+                    using Image img = Image.Load(initialStream);
                     img.Mutate(ctx => ApplyTimestamp(ctx, font, humanFriendlyTime, humanFriendlyDate, Color.White, 10));
                     img.Save(streamForUploading, new JpegEncoder());
                 }
 
                 streamForUploading.Seek(0, SeekOrigin.Begin);
 
-                var latestBlobClient = new BlobClient(connectionString, containerName, latestFileName);
-                latestBlobClient.Upload(streamForUploading, true);
+                using (new AutoStopwatch(_logger, "uploading blob"))
+                {
+                    var latestBlobClient = new BlobClient(connectionString, containerName, latestFileName);
+                    latestBlobClient.Upload(streamForUploading, true);
+                }
             }
 
-            await PostToFrontend();
+            using (new AutoStopwatch(_logger, "post to frontend"))
+            {
+                await PostToFrontend();
+            }
 
             if (myTimer.ScheduleStatus is not null)
             {
