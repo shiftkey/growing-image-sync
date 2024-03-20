@@ -82,8 +82,7 @@ namespace Grow.Update
 
                 using (Image img = Image.Load(initialStream))
                 {
-                    img.Mutate(ctx => ApplyToImage(ctx, font, humanFriendlyTime, Color.White, 10, firstRow: true));
-                    img.Mutate(ctx => ApplyToImage(ctx, font, humanFriendlyDate, Color.White, 10));
+                    img.Mutate(ctx => ApplyTimestamp(ctx, font, humanFriendlyTime, humanFriendlyDate, Color.White, 10));
                     img.Save(streamForUploading, new JpegEncoder());
                 }
 
