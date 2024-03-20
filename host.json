@@ -10,7 +10,7 @@
         },
         "logLevel": {
             "default": "Information",
-            "UpdateLatestImageWithLabel": "Information"
+            "Grow.Update.UpdateLatestImageWithLabel": "Information"
           }
     }
 }
