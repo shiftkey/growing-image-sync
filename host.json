@@ -7,10 +7,6 @@
                 "excludedTypes": "Request"
             },
             "enableLiveMetricsFilters": true
-        },
-        "logLevel": {
-            "default": "Information",
-            "Grow.Update.UpdateLatestImageWithLabel": "Information"
-          }
+        }
     }
 }
