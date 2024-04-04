@@ -22,7 +22,7 @@ namespace Grow.Update
         }
 
         [Function("UpdateLatestImageWithLabel")]
-        public async Task Run([TimerTrigger("0 3,18,32,48 10-23 * * *")] TimerInfo myTimer)
+        public async Task Run([TimerTrigger("0 5,35 10-23 * * *")] TimerInfo myTimer)
         {
             _logger.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
@@ -69,7 +69,6 @@ namespace Grow.Update
                 var humanFriendlyTime = dt.ToString("h:mm tt", CultureInfo.InvariantCulture);
                 var humanFriendlyDate = dt.ToString("d MMMM", CultureInfo.InvariantCulture);
                 _logger.LogInformation("Latest timestamp (friendly): {0} - {1}", humanFriendlyTime, humanFriendlyDate);
-
 
                 var initialStream = new MemoryStream();
 
