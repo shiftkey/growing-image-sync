@@ -2,6 +2,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using System.Globalization;
 
 namespace Grow.Update
 {
@@ -19,8 +20,16 @@ namespace Grow.Update
         {
             _logger.LogInformation($"C# HTTP trigger function executed at: {DateTime.Now}");
 
-            return new OkObjectResult($"Welcome to Azure Functions, {request.Query["name"]}!");
+            var date = request.Query["date"].FirstOrDefault();
+
+            if (DateTime.TryParseExact(date, "yyyy-mm-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
+            {
+                return new OkObjectResult($"TODO: process images for date: {dateTime}!");
+            }
+            else
+            {
+                return new BadRequestObjectResult($"The date received '{date}' was not valid. Try again.");
+            }
         }
     }
-
 }
