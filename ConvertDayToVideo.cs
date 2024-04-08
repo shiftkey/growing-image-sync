@@ -22,7 +22,7 @@ namespace Grow.Update
 
             var date = request.Query["date"].FirstOrDefault();
 
-            if (DateTime.TryParseExact(date, "yyyy-mm-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
+            if (DateTime.TryParseExact(date, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
             {
                 return new OkObjectResult($"TODO: process images for date: {dateTime}!");
             }
